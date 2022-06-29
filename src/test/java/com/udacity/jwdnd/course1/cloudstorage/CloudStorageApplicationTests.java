@@ -15,6 +15,7 @@ import org.springframework.boot.web.server.LocalServerPort;
 import java.io.File;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class CloudStorageApplicationTests {
 
     @LocalServerPort
@@ -40,6 +41,8 @@ class CloudStorageApplicationTests {
     }
 
     @Test
+    @Order(0)
+    @DisplayName("Login Page")
     public void getLoginPage() {
         driver.get("http://localhost:" + this.port + "/login");
         Assertions.assertEquals("Login", driver.getTitle());
@@ -89,7 +92,7 @@ class CloudStorageApplicationTests {
 		*/
         Assertions.assertTrue(
                 driver.findElement(By.id("success-msg")).getText().contains("You successfully signed up!") ||
-                        driver.findElement(By.id("success-msg̐")).getText().contains("is already signed in")
+                        driver.findElement(By.id("success-msg")).getText().contains("is already signed in")
         );
     }
 
@@ -144,6 +147,8 @@ class CloudStorageApplicationTests {
      * https://review.udacity.com/#!/rubrics/2724/view
      */
     @Test
+    @DisplayName("Redirection")
+    @Order(1)
     public void testRedirection() {
         // Create a test account
         doMockSignUp("Redirection", "Test", "RT", "123");
@@ -165,6 +170,8 @@ class CloudStorageApplicationTests {
      * https://attacomsian.com/blog/spring-boot-custom-error-page#displaying-custom-error-page
      */
     @Test
+    @DisplayName("Bad Url")
+    @Order(2)
     public void testBadUrl() {
         // Create a test account
         doMockSignUp("URL", "Test", "UT", "123");
@@ -189,6 +196,9 @@ class CloudStorageApplicationTests {
      * https://spring.io/guides/gs/uploading-files/ under the "Tuning File Upload Limits" section.
      */
     @Test
+    @Order(5)
+    @DisplayName("Large Upload")
+
     public void testLargeUpload() {
         // Create a test account
         doMockSignUp("Large File", "Test", "LFT", "123");
@@ -215,6 +225,8 @@ class CloudStorageApplicationTests {
     }
 
     @Test
+    @DisplayName("Unauthorized Access")
+    @Order(3)
     public void testUnauthorizedUserAccess() {
         // unauthorized access leads to login page
         driver.get("http://localhost:" + this.port + "/home");
@@ -232,6 +244,8 @@ class CloudStorageApplicationTests {
     }
 
     @Test
+    @DisplayName("Full flow")
+    @Order(4)
     public void testFullFlow() {
 
         doMockSignUp("Jason", "Roy", "json", "123");
@@ -297,6 +311,8 @@ class CloudStorageApplicationTests {
     }
 
     @Test
+    @DisplayName("Note creation")
+    @Order(6)
     public void testNoteCreation() {
         doMockSignUp("Jason", "Roy", "json", "123");
         doLogIn("json", "123");
@@ -312,13 +328,15 @@ class CloudStorageApplicationTests {
     }
 
     @Test
+    @DisplayName("Note Edit")
+    @Order(7)
     public void testNoteEditing() {
 
         doMockSignUp("Jason", "Roy", "json", "123");
         doLogIn("json", "123");
 
-        String noteTitle = "My first note";
-        String noteDescription = "This is the description of my first note";
+        String noteTitle = "Note1";
+        String noteDescription = "First note here";
 
         String noteTitleUpdated = "First updates";
         String noteDescriptionUpdated = "Updated my first note, this has more details about the objectives";
@@ -343,12 +361,14 @@ class CloudStorageApplicationTests {
     }
 
     @Test
+    @DisplayName("Note Delete")
+    @Order(8)
     public void testNoteDeletion() {
         doMockSignUp("Jason", "Roy", "json", "123");
         doLogIn("json", "123");
 
-        String noteTitle = "My first note";
-        String noteDescription = "This is the description of my first note";
+        String noteTitle = "Delete this";
+        String noteDescription = "This note will be deleted";
         createNote(noteTitle, noteDescription);
         String delete_id = "delete-" + noteTitle.hashCode();
         WebDriverWait webDriverWait = new WebDriverWait(driver, 10);
@@ -418,6 +438,8 @@ class CloudStorageApplicationTests {
     }
 
     @Test
+    @DisplayName("Credential Creation")
+    @Order(9)
     public void testCredentialCreation() {
 
         doMockSignUp("Jason", "Roy", "json", "123");
@@ -441,17 +463,19 @@ class CloudStorageApplicationTests {
 
 
     @Test
+    @DisplayName("Credential Edit")
+    @Order(10)
     public void testCredentialEditing() {
         doMockSignUp("Jason", "Roy", "json", "123");
         doLogIn("json", "123");
 
-        String url = "www.secret_website.com";
-        String username = "USER_101";
-        String password = "USER_101_password";
+        String url = "www.secret_comics.com";
+        String username = "USER_comics";
+        String password = "USER_comics_password";
 
         createCredentials(url, username, password);
 
-        String url_updated = "www.secret_website_new.com";
+        String url_updated = "www.secret_comics_new.com";
         String username_updated = "USER_107";
         String password_updated = "USER_107_password";
 
@@ -471,6 +495,8 @@ class CloudStorageApplicationTests {
     }
 
     @Test
+    @DisplayName("Credential Delete")
+    @Order(12)
     public void testCredentialDelete() {
         doMockSignUp("Jason", "Roy", "json", "123");
         doLogIn("json", "123");
