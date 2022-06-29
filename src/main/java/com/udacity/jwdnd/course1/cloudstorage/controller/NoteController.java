@@ -22,10 +22,17 @@ public class NoteController {
     }
 
     @PostMapping("/saveNote")
-    public  RedirectView saveNote(@RequestParam("noteTitle") String noteTitle,
+    public  RedirectView saveNote(@RequestParam("noteId") Integer noteId,
+                                  @RequestParam("noteTitle") String noteTitle,
                                   @RequestParam("noteDescription") String noteDescription, RedirectAttributes redirectAttrs){
         System.out.println("NOTE SAVE BREAKPOINT HIT");
-      int result = this.noteService.saveNote(noteTitle, noteDescription, this.userService.getCurrentUserId());
+        if (noteId == null) {
+            int result = this.noteService.saveNote(noteTitle, noteDescription, this.userService.getCurrentUserId());
+        }
+        else {
+            int result = this.noteService.updateNote(noteId, noteTitle, noteDescription, this.userService.getCurrentUserId());
+        }
+
       redirectAttrs.addFlashAttribute("show", "notes");
       return  new RedirectView("/home");
     }

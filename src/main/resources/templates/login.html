@@ -32,6 +32,12 @@
             <div class="form-group" style="margin-top: 0.5em;">
                 <label><a id="signup-link" th:href="@{/signup}">Click here to sign up</a></label>
             </div>
+            <div id="success-msg" th:if="${signupSuccess}" class="alert alert-success">
+                You successfully signed up!
+            </div>
+            <div id="logout-success" th:if="${logoutSuccess}" class="alert alert-success">
+                Logged out successfully !
+            </div>
         </div>
     </body>
 </html>

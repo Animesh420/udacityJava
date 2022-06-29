@@ -52,7 +52,7 @@ class CloudStorageApplicationTests {
 		// Create a dummy account for logging in later.
 
 		// Visit the sign-up page.
-		WebDriverWait webDriverWait = new WebDriverWait(driver, 2);
+		WebDriverWait webDriverWait = new WebDriverWait(driver, 9);
 		driver.get("http://localhost:" + this.port + "/signup");
 		webDriverWait.until(ExpectedConditions.titleContains("Sign Up"));
 		
@@ -99,7 +99,7 @@ class CloudStorageApplicationTests {
 	{
 		// Log in to our dummy account.
 		driver.get("http://localhost:" + this.port + "/login");
-		WebDriverWait webDriverWait = new WebDriverWait(driver, 2);
+		WebDriverWait webDriverWait = new WebDriverWait(driver, 9);
 
 		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("inputUsername")));
 		WebElement loginUserName = driver.findElement(By.id("inputUsername"));
@@ -118,6 +118,17 @@ class CloudStorageApplicationTests {
 		webDriverWait.until(ExpectedConditions.titleContains("Home"));
 
 	}
+
+	private void doLogout() {
+		driver.get("http://localhost:" + this.port + "/home");
+		WebDriverWait webDriverWait = new WebDriverWait(driver, 2);
+
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("logout-button")));
+		WebElement logoutButton = driver.findElement(By.id("logout-button"));
+		logoutButton.click();
+		webDriverWait.until(ExpectedConditions.titleContains("Login"));
+	}
+
 
 	/**
 	 * PLEASE DO NOT DELETE THIS TEST. You may modify this test to work with the 
@@ -184,6 +195,7 @@ class CloudStorageApplicationTests {
 		// Try to upload an arbitrary large file
 		WebDriverWait webDriverWait = new WebDriverWait(driver, 2);
 		String fileName = "upload5m.zip";
+		String id_to_check = "success-upload5m.zip";
 
 		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("fileUpload")));
 		WebElement fileSelectButton = driver.findElement(By.id("fileUpload"));
@@ -192,7 +204,7 @@ class CloudStorageApplicationTests {
 		WebElement uploadButton = driver.findElement(By.id("uploadButton"));
 		uploadButton.click();
 		try {
-			webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.id("success")));
+			webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.id(id_to_check)));
 		} catch (org.openqa.selenium.TimeoutException e) {
 			System.out.println("Large File upload failed");
 		}
@@ -200,6 +212,150 @@ class CloudStorageApplicationTests {
 
 	}
 
+	@Test
+	public void testUnauthorizedUserAccess() {
+		// unauthorized access leads to login page
+		driver.get("http://localhost:" + this.port + "/home");
+		Assertions.assertEquals("http://localhost:" + this.port + "/login", driver.getCurrentUrl());
 
+		// unauthorized user can access login page
+		driver.get("http://localhost:" + this.port + "/login");
+		Assertions.assertEquals("http://localhost:" + this.port + "/login", driver.getCurrentUrl());
+
+
+		// unauthorized user can access signup page
+		driver.get("http://localhost:" + this.port + "/signup");
+		Assertions.assertEquals("http://localhost:" + this.port + "/signup", driver.getCurrentUrl());
+
+	}
+
+	@Test
+	public void testFullFlow() {
+
+		doMockSignUp("Jason","Roy","json","123");
+		doLogIn("json", "123");
+
+		// home page is accessible
+		driver.get("http://localhost:" + this.port + "/home");
+		Assertions.assertEquals("http://localhost:" + this.port + "/home", driver.getCurrentUrl());
+
+		doLogout();
+
+		// home page is not accessible
+		driver.get("http://localhost:" + this.port + "/home");
+		Assertions.assertNotEquals("http://localhost:" + this.port + "/home", driver.getCurrentUrl());
+
+
+	}
+
+	public void navigateToNodeTab(WebDriverWait webDriverWait, String id ) {
+		// go to homepage
+		driver.get("http://localhost:" + this.port + "/home");
+		// go to notes tab
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id(id)));
+		WebElement noteTab = driver.findElement(By.id(id));
+		noteTab.click();
+	}
+
+	public void addNoteDetails(WebDriverWait webDriverWait, String noteTitle, String noteDescription) {
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("note-title")));
+		WebElement noteTitleInput = driver.findElement(By.id("note-title"));
+		noteTitleInput.click();
+		noteTitleInput.clear();
+		noteTitleInput.sendKeys(noteTitle);
+
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("note-description")));
+		WebElement noteDescriptionInput = driver.findElement(By.id("note-description"));
+		noteDescriptionInput.click();
+		noteDescriptionInput.clear();
+		noteDescriptionInput.sendKeys(noteDescription);
+	}
+
+	public void submitNote(WebDriverWait webDriverWait){
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("noteSubmitFooter")));
+		WebElement noteSubmitButton = driver.findElement(By.id("noteSubmitFooter"));
+		noteSubmitButton.click();
+	}
+
+	public void createNote(String noteTitle, String noteDescription) {
+		// get the webdriver
+		WebDriverWait webDriverWait = new WebDriverWait(driver, 120);
+		navigateToNodeTab(webDriverWait, "nav-notes-tab");
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("add-new-note")));
+		WebElement addNoteButton = driver.findElement(By.id("add-new-note"));
+		addNoteButton.click();
+		addNoteDetails(webDriverWait, noteTitle, noteDescription);
+		submitNote(webDriverWait);
+
+	}
+
+	@Test
+	public void testNoteCreation() {
+		doMockSignUp("Jason","Roy","json","123");
+		doLogIn("json", "123");
+
+		String noteTitle = "My first note";
+		String noteDescription = "This is the description of my first note";
+
+		createNote(noteTitle, noteDescription);
+
+		Assertions.assertTrue(this.driver.getPageSource().contains(noteTitle) &&
+				this.driver.getPageSource().contains(noteDescription));
+
+	}
+
+	@Test
+	public void testNoteEditing() {
+
+		doMockSignUp("Jason","Roy","json","123");
+		doLogIn("json", "123");
+
+		String noteTitle = "My first note";
+		String noteDescription = "This is the description of my first note";
+
+		String noteTitleUpdated = "First updates";
+		String noteDescriptionUpdated = "Updated my first note, this has more details about the objectives";
+
+		createNote(noteTitle, noteDescription);
+		String edit_id = "edit-" + noteTitle.hashCode();
+		WebDriverWait webDriverWait = new WebDriverWait(driver, 10);
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id(edit_id)));
+		WebElement noteEditButton = driver.findElement(By.id(edit_id));
+		noteEditButton.click();
+		addNoteDetails(webDriverWait, noteTitleUpdated, noteDescriptionUpdated);
+		submitNote(webDriverWait);
+
+		Assertions.assertTrue(this.driver.getPageSource().contains(noteTitleUpdated) &&
+				this.driver.getPageSource().contains(noteDescriptionUpdated));
+
+
+		Assertions.assertFalse(this.driver.getPageSource().contains(noteTitle) ||
+				this.driver.getPageSource().contains(noteDescription));
+
+	}
+	@Test
+	public void testNoteDeletion() {
+		doMockSignUp("Jason","Roy","json","123");
+		doLogIn("json", "123");
+
+		String noteTitle = "My first note";
+		String noteDescription = "This is the description of my first note";
+		createNote(noteTitle, noteDescription);
+		String delete_id = "delete-" + noteTitle.hashCode();
+		WebDriverWait webDriverWait = new WebDriverWait(driver, 10);
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id(delete_id)));
+		WebElement noteEditButton = driver.findElement(By.id(delete_id));
+		noteEditButton.click();
+
+		Assertions.assertFalse(this.driver.getPageSource().contains(noteTitle) ||
+				this.driver.getPageSource().contains(noteDescription));
+
+
+	}
+
+	@Test
+	public void testCredentialCreation() {
+		
+	}
 
 }

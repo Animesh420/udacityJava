@@ -12,8 +12,8 @@
 <div class="container">
     <h1 th:text="${msg}"></h1>
     <div id="logoutDiv">
-        <form action="#" method="POST">
-            <button type="submit" class="btn btn-secondary float-right">Logout</button>
+        <form th:action="@{/logout}" method="POST">
+            <button type="submit" class="btn btn-secondary float-right" id="logout-button">Logout</button>
         </form>
     </div>
     <div id="contentDiv" style="clear: right;">
@@ -61,6 +61,7 @@
                                    th:href="@{/home/delete-file/{id}(id=${file.getFileId()})}">Delete</a>
                             </td>
                             <th scope="row"
+                                th:id="'success-' + ${file.getFileName()}"
                                 th:text="${file.getFileName()}">ExampleFile.txt
                             </th>
                         </tr>
@@ -71,7 +72,7 @@
             </div>
             <div class="tab-pane fade" th:classappend="${show == 'notes' ? ' show active ' : ''}" id="nav-notes" role="tabpanel" aria-labelledby="nav-notes-tab">
                 <button style="margin: 0.25em;" type="button" class="btn btn-info float-right"
-                        onclick="showNoteModal()">
+                        onclick="showNoteModal()" id="add-new-note">
                     + Add a New Note
                 </button>
 
@@ -88,9 +89,11 @@
                         <tr th:each="note : ${notes}">
                             <td>
                                 <a target="_blank" class="btn btn-success"
-                                   th:onclick="showNoteView([[${note.getNoteTitle()}]],[[${note.getNoteDescription()}]])"
-                                   >View</a>
+                                   th:id="'edit-'+${note.getNoteTitle().hashCode()}"
+                                   th:onclick="showNoteModal([[${note.getNoteId()}]], [[${note.getNoteTitle()}]],[[${note.getNoteDescription()}]])"
+                                   >Edit</a>
                                 <a class="btn btn-danger"
+                                   th:id="'delete-'+${note.getNoteTitle().hashCode()}"
                                    th:href="@{/home/delete-note/{id}(id=${note.getNoteId()})}">Delete</a>
                             </td>
                             <th scope="row" th:text="${note.getNoteTitle()}"></th>
@@ -98,38 +101,6 @@
                         </tr>
                         </tbody>
                     </table>
-                </div>
-
-                <div class="modal fade" id="noteViewModal" tabindex="-1" role="dialog" aria-labelledby="noteViewModalLabel"
-                     aria-hidden="true">
-                    <div class="modal-dialog" role="document">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="noteViewModalLabel">Note</h5>
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                            </div>
-                            <div class="modal-body">
-                                <form action="#"  method="POST">
-                                    <div class="form-group">
-                                        <label for="note-title" class="col-form-label">Title</label>
-                                        <input type="text" name="noteTitle" class="form-control" id="note-view-title"
-                                               maxlength="20">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="note-description" class="col-form-label">Description</label>
-                                        <textarea class="form-control" name="noteDescription" id="note-view-description"
-                                                  rows="5" maxlength="1000" required></textarea>
-                                    </div>
-
-                                </form>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
                 <div class="modal fade" id="noteModal" tabindex="-1" role="dialog" aria-labelledby="noteModalLabel"
@@ -160,7 +131,7 @@
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                                <button type="button" class="btn btn-primary" onclick="$('#noteSubmit').click();">Save
+                                <button id="noteSubmitFooter" type="button" class="btn btn-primary" onclick="$('#noteSubmit').click();">Save
                                     changes
                                 </button>
                             </div>
@@ -170,10 +141,9 @@
             </div>
             <div class="tab-pane fade" th:classappend="${show == 'cred' ? ' show active ' : ''}" id="nav-credentials" role="tabpanel" aria-labelledby="nav-credentials-tab">
                 <button style="margin: 0.25em;" type="button" class="btn btn-info float-right"
-                        onclick="showCredentialModal()">
+                        onclick="showCredentialModal()" id="add-new-cred">
                     + Add a New Credential
                 </button>
-
                 <div class="table-responsive">
                     <table class="table table-striped"  id="credentialTable">
                         <thead>
@@ -200,7 +170,6 @@
                         </tbody>
                     </table>
                 </div>
-
                 <div class="modal fade" id="credentialModal" tabindex="-1" role="dialog"
                      aria-labelledby="credentialModalLabel" aria-hidden="true">
                     <div class="modal-dialog" role="document">
@@ -257,14 +226,11 @@
                 $('#note-id').val(noteId ? noteId : '');
                 $('#note-title').val(noteTitle ? noteTitle : '');
                 $('#note-description').val(noteDescription ? noteDescription : '');
+                console.log("Working");
                 $('#noteModal').modal('show');
             }
 
-            function showNoteView(noteTitle, noteDescription){
-                $('#note-view-title').val(noteTitle ? noteTitle : '');
-                $('#note-view-description').val(noteDescription ? noteDescription : '');
-                $('#noteViewModal').modal('show');
-            }
+
 
             // For opening the credentials modal
             function showCredentialModal(credentialId, url, username, password) {

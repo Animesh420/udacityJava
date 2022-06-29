@@ -15,11 +15,16 @@ public class NoteService {
         this.noteMapper = noteMapper;
     }
 
-    public int saveNote(String noteTitle,String noteDescription, int userId) {
+    public Note getNote(String noteTitle,String noteDescription, int userId) {
         Note note = new Note();
         note.setNoteTitle(noteTitle);
         note.setNoteDescription(noteDescription);
         note.setUserId(userId);
+        return note;
+    }
+
+    public int saveNote(String noteTitle,String noteDescription, int userId) {
+        Note note = getNote(noteTitle, noteDescription, userId);
         return this.noteMapper.insertNote(note);
     }
 
@@ -29,6 +34,12 @@ public class NoteService {
 
     public void deleteNote(int noteId) {
         this.noteMapper.deleteNote(noteId);
+    }
+
+    public int updateNote(int noteId, String noteTitle, String noteDescription, int userId) {
+        Note note =  getNote(noteTitle, noteDescription, userId);
+        note.setNoteId(noteId);
+        return this.noteMapper.updateNote(note);
     }
 
 }
