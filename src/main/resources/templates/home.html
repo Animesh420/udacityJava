@@ -154,13 +154,15 @@
                             <th style="width: 25%" scope="col">Password</th>
                         </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="cred-table">
                         <tr th:each="cred : ${creds}">
                             <td>
                                 <a target="_blank" class="btn btn-success"
+                                   th:id="'edit-'+${cred.getUrl().hashCode()}"
                                    th:onclick="showCredentialModal([[${cred.getCredentialid()}]],[[${cred.getUrl()}]],[[${cred.getUsername()}]], [[${cred.getDecryptedPassword()}]])"
                                 >Edit</a>
                                 <a class="btn btn-danger"
+                                   th:id="'delete-'+${cred.getUrl().hashCode()}"
                                    th:href="@{/home/delete-cred/{id}(id=${cred.getCredentialid()})}">Delete</a>
                             </td>
                             <th scope="row" th:text="${cred.getUrl()}"></th>
@@ -203,7 +205,7 @@
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                                <button type="button" class="btn btn-primary" onclick="$('#credentialSubmit').click();">
+                                <button id="credSubmitFooter" type="button" class="btn btn-primary" onclick="$('#credentialSubmit').click();">
                                     Save changes
                                 </button>
                             </div>

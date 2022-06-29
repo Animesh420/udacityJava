@@ -358,9 +358,119 @@ class CloudStorageApplicationTests {
 
 	}
 
+
+	public void addCredDetails(WebDriverWait webDriverWait, String url, String username, String password) {
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("credential-url")));
+		WebElement credUrlInput = driver.findElement(By.id("credential-url"));
+		credUrlInput.click();
+		credUrlInput.clear();
+		credUrlInput.sendKeys(url);
+
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("credential-username")));
+		WebElement credUserInput = driver.findElement(By.id("credential-username"));
+		credUserInput.click();
+		credUserInput.clear();
+		credUserInput.sendKeys(username);
+
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("credential-password")));
+		WebElement credPasswordInput = driver.findElement(By.id("credential-password"));
+		credPasswordInput.click();
+		credPasswordInput.clear();
+		credPasswordInput.sendKeys(password);
+	}
+
+	public void submitCred(WebDriverWait webDriverWait){
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("credSubmitFooter")));
+		WebElement noteSubmitButton = driver.findElement(By.id("credSubmitFooter"));
+		noteSubmitButton.click();
+	}
+
+	public void createCredentials(String url, String username, String password) {
+		// get the webdriver
+		WebDriverWait webDriverWait = new WebDriverWait(driver, 5);
+		navigateToNodeTab(webDriverWait, "nav-credentials-tab");
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("add-new-cred")));
+		WebElement addCredButton = driver.findElement(By.id("add-new-cred"));
+		addCredButton.click();
+		addCredDetails(webDriverWait, url, username, password);
+		submitCred(webDriverWait);
+	}
+
+	public void assertPasswordDisplay(String password) {
+		WebDriverWait webDriverWait = new WebDriverWait(driver, 9);
+
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("cred-table")));
+		WebElement credential_table = driver.findElement(By.id("cred-table"));
+		// check that the real password does not exist in the display table
+		Assertions.assertFalse(credential_table.getText().contains(password));
+	}
+
+	public void clickCredentialEditButton(String url){
+		String edit_id = "edit-" + url.hashCode();
+		WebDriverWait webDriverWait = new WebDriverWait(driver, 10);
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id(edit_id)));
+		WebElement credEditButton = driver.findElement(By.id(edit_id));
+		credEditButton.click();
+	}
+
+	public void assertPasswordDisplayUnEncrypted(String password) {
+		WebDriverWait webDriverWait = new WebDriverWait(driver, 9);
+
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("credential-password")));
+		WebElement credential_table = driver.findElement(By.id("credential-password"));
+		// check that the real password does not exist in the display table
+		Assertions.assertTrue(credential_table.getAttribute("value").contains(password));
+	}
+
 	@Test
 	public void testCredentialCreation() {
+
+		doMockSignUp("Jason","Roy","json","123");
+		doLogIn("json", "123");
+
+		String url = "www.secret_website.com";
+		String username = "USER_101";
+		String password = "USER_101_password";
+
+		createCredentials(url, username, password);
+
+		Assertions.assertTrue(this.driver.getPageSource().contains(url) &&
+				this.driver.getPageSource().contains(username));
+
+		assertPasswordDisplay(password);
+		clickCredentialEditButton(url);
+		assertPasswordDisplayUnEncrypted(password);
 		
 	}
 
+
+	@Test
+	public void testCredentialEditing() {
+		doMockSignUp("Jason","Roy","json","123");
+		doLogIn("json", "123");
+
+		String url = "www.secret_website.com";
+		String username = "USER_101";
+		String password = "USER_101_password";
+
+		createCredentials(url, username, password);
+
+		String url_updated = "www.secret_website_new.com";
+		String username_updated = "USER_107";
+		String password_updated = "USER_107_password";
+
+		WebDriverWait webDriverWait = new WebDriverWait(driver, 9);
+		clickCredentialEditButton(url);
+		addCredDetails(webDriverWait, url_updated, username_updated, password_updated);
+		submitCred(webDriverWait);
+
+		Assertions.assertTrue(this.driver.getPageSource().contains(url_updated) &&
+				this.driver.getPageSource().contains(username_updated));
+
+		assertPasswordDisplay(password_updated);
+		clickCredentialEditButton(url_updated);
+		assertPasswordDisplayUnEncrypted(password_updated);
+
+
+	}
 }
