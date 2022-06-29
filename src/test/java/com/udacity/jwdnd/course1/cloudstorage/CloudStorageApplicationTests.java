@@ -86,7 +86,10 @@ class CloudStorageApplicationTests {
 		// You may have to modify the element "success-msg" and the sign-up 
 		// success message below depening on the rest of your code.
 		*/
-		Assertions.assertTrue(driver.findElement(By.id("success-msg")).getText().contains("You successfully signed up!"));
+		Assertions.assertTrue(
+				driver.findElement(By.id("success-msg")).getText().contains("You successfully signed up!") ||
+				driver.findElement(By.id("success-msg̐")).getText().contains("is already signed in")
+		);
 	}
 
 	
@@ -279,7 +282,7 @@ class CloudStorageApplicationTests {
 
 	public void createNote(String noteTitle, String noteDescription) {
 		// get the webdriver
-		WebDriverWait webDriverWait = new WebDriverWait(driver, 120);
+		WebDriverWait webDriverWait = new WebDriverWait(driver, 5);
 		navigateToNodeTab(webDriverWait, "nav-notes-tab");
 		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("add-new-note")));
 		WebElement addNoteButton = driver.findElement(By.id("add-new-note"));
@@ -349,6 +352,8 @@ class CloudStorageApplicationTests {
 
 		Assertions.assertFalse(this.driver.getPageSource().contains(noteTitle) ||
 				this.driver.getPageSource().contains(noteDescription));
+
+		doLogout();
 
 
 	}

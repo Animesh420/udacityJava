@@ -44,7 +44,13 @@ public class SignupController {
 
         if (signupError == null) {
             redirectAttributes.addFlashAttribute("signupSuccess", true);
+            redirectAttributes.addFlashAttribute("msg", "You successfully signed up!");
             return new RedirectView("/login");
+        } else if (signupError.equals("The username already exists.")) {
+            redirectAttributes.addFlashAttribute("signupSuccess", true);
+            redirectAttributes.addFlashAttribute("msg", "User " + user.getUsername() + " is already signed in, please continue log-in.");
+            return new RedirectView("/login");
+
         } else {
             redirectAttributes.addFlashAttribute("signupError", signupError);
             return new RedirectView("/signup");
